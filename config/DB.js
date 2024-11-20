@@ -6,4 +6,4 @@ export const connectDb = async () => {
 
 
 
-//mongodb://localhost:27017/
+//database url ---> //mongodb://localhost:27017/
