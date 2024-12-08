@@ -1,29 +1,33 @@
 import express from "express";
 import cors from "cors";
-import { connectDb } from "./config/db.js";
-import userModel from "./models/userModel.js";
-import userRouter from "./routes/userRoute.js";
 import 'dotenv/config';
+import cookieParser from "cookie-parser";
+import connectDB from "./config/mongodb.js";
+import authRouter from "./routes/authRoute.js";
 
 
 
-
-//app config
 const app = express();
-const port = 4000;
 
-//middleware 
+const port = process.env.port || 4000;
+
+connectDB();
+
 app.use(express.json());
-app.use(cors());
 
-//database connection
-    connectDb();
-//all api end points
-app.use("/api/user",userRouter);
+app.use(cookieParser());
+
+app.use(cors({credentials: true}));
+
+
+// api endpoints
+
+app.use('/api/auth',authRouter)
+
 app.get("/",(req,res)=>{
-    res.send("App is working fine");
+        res.send("Api is working fine");
 })
 
 app.listen(port,()=>{
-    console.log(`Server Started On http://localhost:${port}`);
-})
+    console.log(`server started at Port : ${port}`)
+});
