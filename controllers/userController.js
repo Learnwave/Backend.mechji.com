@@ -30,7 +30,7 @@ const loginUser = async (req,res) => {
             }
 
 // register user function
-            const registerUser = async (req,res) =>{
+    const registerUser = async (req,res) =>{
             const {name,email,password,repeat_password} = req.body;
             try {
             //checking user exist or not
@@ -72,5 +72,38 @@ const loginUser = async (req,res) => {
             res.json({success:false,message:"error"});
             }
             }
+            
+         //google authenticating using firebase
+    export const google = async (req,res,next) => {
+            try {
+            const user = await userModel.findOne({email : req.body.email})
+            if (user) {
+                const token = jwt.sign({id: user._id},process.env.JWT_SECRET);
+                const {password : pass , ...rest} = user._doc;
+                res
+                    .cookie('access_token',token,{httpOnly:true})
+                    .status(200)
+                    .json(rest);
+            }else{
+                const genratedPassword = Math.random().toString(36).slice(-8) ;
+                const hashedPassword = bcrypt.hashSync(genratedPassword, 10);
+                const newUser = new userModel({
+                    name : req.body.name ,
+                    email : req.body.email,
+                    password : hashedPassword,
+                    repeat_password : hashedPassword,
+                    avatar : req.body.photo
+                });
+                await newUser.save();
+                const token = jwt.sign({id: newUser._id }, process.env.JWT_SECRET);
+                const {password:pass , ...rest } = newUser._doc;
+                res.cookie("access_token",token, {httpOnly:true}).status(200).json(rest);
+
+            }
+            } catch (error) {
+                next(error);
+            }
+        }
+    
 
 export {loginUser,registerUser}
